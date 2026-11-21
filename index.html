@@ -103,8 +103,13 @@ section.dark .foot-txt { color:var(--body-dark); }
 /* ---- speler ---- */
 #stage { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; }
 #deck { position:relative; width:1920px; height:1080px; flex:none; transform-origin:center center; }
-#deck > section { position:absolute; left:0; top:0; width:1920px; height:1080px; overflow:hidden; opacity:0; visibility:hidden; transition:opacity .35s ease, visibility 0s linear .35s; }
-#deck > section.active { opacity:1; visibility:visible; transition:opacity .35s ease; }
+#deck > section { position:absolute; left:0; top:0; width:1920px; height:1080px; overflow:hidden; display:none; }
+#deck > section.active { display:flex; animation:fadein .35s ease; }
+@keyframes fadein { from { opacity:0; } to { opacity:1; } }
+.vid-wrap { position:relative; width:1088px; height:612px; }
+.play { position:absolute; left:50%; top:50%; width:150px; height:150px; margin:-75px 0 0 -75px; border:0; border-radius:75px; background:rgba(245,183,0,.95); box-shadow:0 8px 30px rgba(0,0,0,.35); cursor:pointer; display:none; }
+.play span { position:absolute; left:58px; top:44px; width:0; height:0; border-style:solid; border-width:31px 0 31px 50px; border-color:transparent transparent transparent #18202B; }
+.vid-wrap.paused .play { display:block; }
 .controls { position:fixed; right:16px; bottom:16px; display:flex; gap:6px; align-items:center; background:rgba(14,19,26,.82); color:#F5F2EA; border-radius:12px; padding:6px; font:15px/1 'Inter', Arial, sans-serif; transition:opacity .4s; z-index:10; }
 .controls.hide { opacity:0; pointer-events:none; }
 .controls button { font:inherit; color:inherit; background:transparent; border:0; border-radius:8px; padding:9px 12px; cursor:pointer; }
@@ -123,8 +128,8 @@ section.dark .foot-txt { color:var(--body-dark); }
   html, body { height:auto; overflow:visible; background:#fff; }
   #stage { position:static; display:block; }
   #deck { transform:none !important; width:1920px; height:auto; }
-  #deck > section { position:relative; opacity:1 !important; visibility:visible !important; break-after:page; page-break-after:always; }
-  .controls, .notes, .help { display:none !important; }
+  #deck > section { position:relative; display:flex !important; animation:none !important; break-after:page; page-break-after:always; }
+  .controls, .notes, .help, .play { display:none !important; }
 }
 </style>
 </head>
@@ -329,7 +334,7 @@ section.dark .foot-txt { color:var(--body-dark); }
 <h2 class="t2">Filmpje: wat is terugslag?</h2>
 <div class="vid-row">
 <div class="vid-col">
-<video src="media/filmpje-terugslag.mp4" poster="media/still-terugslag.jpg" muted loop playsinline preload="auto" aria-label="Animatie van bovenaf. Fout: zonder spouwmes klemt het hout achter het zaagblad en schiet het terug naar de persoon. Goed: met spouwmes en beschermkap gaat het hout recht door en staat de persoon naast het zaagblad." title="Klik om te pauzeren of af te spelen" style="width:1088px; height:612px; object-fit:cover; border-radius:16px; display:block; background:#0E131A; cursor:pointer;"></video>
+<div class="vid-wrap"><video src="media/filmpje-terugslag.mp4" poster="media/still-terugslag.jpg" muted loop playsinline preload="auto" aria-label="Animatie van bovenaf. Fout: zonder spouwmes klemt het hout achter het zaagblad en schiet het terug naar de persoon. Goed: met spouwmes en beschermkap gaat het hout recht door en staat de persoon naast het zaagblad." title="Klik om te pauzeren of af te spelen" style="width:1088px; height:612px; object-fit:cover; border-radius:16px; display:block; background:#0E131A; cursor:pointer;"></video><button class="play" aria-label="Filmpje afspelen"><span></span></button></div>
 <p class="vid-cap">Het filmpje start vanzelf (16 seconden). Klik om te pauzeren.</p>
 </div>
 <div class="vid-side">
@@ -363,7 +368,7 @@ section.dark .foot-txt { color:var(--body-dark); }
 <h2 class="t2">Filmpje: houd je handen veilig</h2>
 <div class="vid-row">
 <div class="vid-col">
-<video src="media/filmpje-handen.mp4" poster="media/still-handen.jpg" muted loop playsinline preload="auto" aria-label="Animatie van bovenaf. Handen duwen het hout tot de rode zone rond het zaagblad. Daarna duwt het duwhout het hout voorbij het blad. Afval wordt pas weggehaald als de zaag uit staat en het blad stilstaat." title="Klik om te pauzeren of af te spelen" style="width:1088px; height:612px; object-fit:cover; border-radius:16px; display:block; background:#0E131A; cursor:pointer;"></video>
+<div class="vid-wrap"><video src="media/filmpje-handen.mp4" poster="media/still-handen.jpg" muted loop playsinline preload="auto" aria-label="Animatie van bovenaf. Handen duwen het hout tot de rode zone rond het zaagblad. Daarna duwt het duwhout het hout voorbij het blad. Afval wordt pas weggehaald als de zaag uit staat en het blad stilstaat." title="Klik om te pauzeren of af te spelen" style="width:1088px; height:612px; object-fit:cover; border-radius:16px; display:block; background:#0E131A; cursor:pointer;"></video><button class="play" aria-label="Filmpje afspelen"><span></span></button></div>
 <p class="vid-cap">Het filmpje start vanzelf (15 seconden). Klik om te pauzeren.</p>
 </div>
 <div class="vid-side">
@@ -447,10 +452,7 @@ Op een telefoon of tablet: veeg naar links of rechts.
       const on = k === i;
       sl.classList.toggle('active', on);
       sl.setAttribute('aria-hidden', on ? 'false' : 'true');
-      sl.querySelectorAll('video').forEach(function(v) {
-        if (on) { try { v.currentTime = 0; } catch (e) {} const p = v.play(); if (p && p.catch) p.catch(function(){}); }
-        else { v.pause(); }
-      });
+      sl.querySelectorAll('video').forEach(function(v) { if (on) start(v); else v.pause(); });
     });
     cur = i;
     count.textContent = (i + 1) + ' / ' + N;
@@ -458,6 +460,21 @@ Op een telefoon of tablet: veeg naar links of rechts.
     notes.innerHTML = '<b>Notities dia ' + (i + 1) + '</b><br>' + (aside ? aside.textContent : '');
     if (push !== false) history.replaceState(null, '', '#' + (i + 1));
   }
+
+  function mark(v) { v.parentNode.classList.toggle('paused', v.paused); }
+  function tryPlay(v) {
+    v.muted = true; v.defaultMuted = true;
+    const p = v.play();
+    if (p && p.then) p.then(function() { mark(v); }, function() { if (v.currentTime < 0.5) { try { v.currentTime = 2.4; } catch (e) {} } mark(v); });
+    else mark(v);
+  }
+  function start(v) {
+    v.muted = true; v.defaultMuted = true; v.setAttribute('muted', '');
+    function go() { try { v.currentTime = 0; } catch (e) {} tryPlay(v); }
+    if (v.readyState >= 1) go();
+    else { v.addEventListener('loadedmetadata', go, { once: true }); v.load(); setTimeout(function() { mark(v); }, 1500); }
+  }
+  function toggle(v) { if (v.paused) tryPlay(v); else { v.pause(); mark(v); } }
 
   function fromHash() {
     const n = parseInt((location.hash || '').replace('#', ''), 10);
@@ -469,7 +486,7 @@ Op een telefoon of tablet: veeg naar links of rechts.
     else { document.exitFullscreen(); }
   }
   function toggleVideo() {
-    slides[cur].querySelectorAll('video').forEach(function(v) { v.paused ? v.play() : v.pause(); });
+    slides[cur].querySelectorAll('video').forEach(toggle);
   }
 
   document.getElementById('prev').onclick = function() { show(cur - 1); };
@@ -479,7 +496,11 @@ Op een telefoon of tablet: veeg naar links of rechts.
   document.getElementById('helpBtn').onclick = function() { help.classList.toggle('show'); };
   help.onclick = function() { help.classList.remove('show'); };
   deck.querySelectorAll('video').forEach(function(v) {
-    v.addEventListener('click', function(e) { e.stopPropagation(); v.paused ? v.play() : v.pause(); });
+    v.addEventListener('click', function(e) { e.stopPropagation(); toggle(v); });
+    v.addEventListener('play', function() { mark(v); });
+    v.addEventListener('playing', function() { mark(v); });
+    v.addEventListener('pause', function() { mark(v); });
+    v.parentNode.querySelector('.play').addEventListener('click', function(e) { e.stopPropagation(); tryPlay(v); });
   });
 
   document.addEventListener('keydown', function(e) {
